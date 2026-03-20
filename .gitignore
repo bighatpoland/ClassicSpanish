@@ -14,6 +14,10 @@ Thumbs.db
 node_modules/
 dist/
 build/
+.next/
+.tools/
+test-results/
+classic-countdown/
 
 # Python
 .venv/

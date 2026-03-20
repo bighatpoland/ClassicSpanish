@@ -1,19 +1,28 @@
-# Classic SRS
+# Classic Spanish
 
-This repository is initialized as a docs-first project for drafting and maintaining a classic software requirements specification (SRS).
+Classic Spanish to mobilna aplikacja typu PWA do codziennej nauki hiszpanskiego, budowana w repo glownym z referencja wizualna do APplus Classic.
 
-## Structure
+## Application
 
-- `docs/README.md` explains the documentation area.
-- `docs/srs.md` is the starter SRS template.
-- `docs/research-synthesis.md` captures the research behind the learning method.
-- `docs/method-decision.md` records the chosen mobile learning approach.
-- `docs/14-day-pilot.md` defines the validation pilot.
-- `docs/final-stack.md` records the chosen product and deployment stack.
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Dexie / IndexedDB
+- opcjonalne AI Route Handlers
+- PWA z offline fallbackiem
 
-## Getting Started
+## MVP scope
 
-1. Review `docs/final-stack.md` for the implementation stack and deployment model.
-2. Use `docs/srs.md` to turn the stack into concrete requirements and scope.
-3. Add supporting artifacts as the project grows.
-4. Commit changes to track decisions and requirement history.
+- `Today`
+- `SRS`
+- `Input`
+- `Speak`
+- `Inbox`
+- `Tutor`
+- `Progress`
+- `Settings`
+
+## Repository notes
+
+- `docs/` zawiera materialy produktowe i architektoniczne.
+- `classic-countdown/` jest osobnym projektem referencyjnym i nie nalezy do tego repo.
