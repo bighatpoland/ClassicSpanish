@@ -63,11 +63,11 @@ export function VoiceRecorder({ onRecordingReady }: { onRecordingReady: (audioRe
   }
 
   return (
-    <div className="space-y-3 rounded border border-applus-border bg-applus-muted p-4">
+    <div className="applus-soft-panel space-y-3 p-4">
       <p className="text-sm text-applus-text">Lokalne nagranie zostaje tylko na tym urzadzeniu.</p>
       <div className="flex flex-wrap gap-3">
         {recording ? <PrimaryButton onClick={stopRecording}>Zatrzymaj</PrimaryButton> : <PrimaryButton onClick={startRecording}>Nagraj</PrimaryButton>}
-        <button className="rounded border border-applus-border px-4 py-2 text-sm" onClick={() => setAudioRef(undefined)} type="button">
+        <button className="border border-applus-border bg-white px-4 py-2 text-sm hover:bg-applus-muted" onClick={() => setAudioRef(undefined)} type="button">
           Wyczysc
         </button>
       </div>

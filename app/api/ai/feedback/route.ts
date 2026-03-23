@@ -7,6 +7,9 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       text?: string;
       focus?: string;
+      missionPrompt?: string;
+      targetChunks?: string[];
+      recentPhrases?: string[];
     };
     const result = await generateTextFeedback(body);
     return NextResponse.json(result, { status: result.enabled ? 200 : 503 });

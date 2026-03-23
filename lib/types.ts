@@ -2,6 +2,30 @@ export type StudyMode = "quiet" | "voice";
 
 export type SessionTemplate = "standard" | "minimum";
 
+export type ActivationStage = "captured" | "clarified" | "carded" | "primed" | "used_today" | "reused" | "stable";
+
+export type LevelBand = "A0-A1" | "A1-A2" | "A2-B1";
+
+export type MissionType = "retell" | "opinion" | "story" | "simulation" | "lesson-prep" | "reuse-challenge";
+
+export type MissionStatus = "planned" | "completed";
+
+export type WeeklyFocusStatus = "active" | "completed" | "queued";
+
+export type TutorCorrectionPin = "this_week" | "next_lesson" | "srs_only";
+
+export type TutorFrequency = "weekly" | "twice-weekly";
+
+export type WeeklyIntensity = "light" | "steady" | "focused";
+
+export type MainBarrier = "hesitation" | "confidence" | "connectors" | "sentence-length" | "repair";
+
+export type CardSourceType = "phrase_inbox" | "tutor" | "weekly_focus";
+
+export type PhraseStatus = "captured" | "carded" | "spoken";
+
+export type UseTodaySource = "card" | "phrase" | "focus" | "tutor";
+
 export type Card = {
   id: string;
   promptPl: string;
@@ -12,6 +36,14 @@ export type Card = {
   dueAt: string;
   lapses: number;
   createdAt: string;
+  sourceType: CardSourceType;
+  topicId: string;
+  utilityScore: number;
+  activationStage: ActivationStage;
+  timesSpoken: number;
+  lastSpokenAt?: string;
+  nextUseBy?: string;
+  linkedPhraseId?: string;
 };
 
 export type Review = {
@@ -22,8 +54,6 @@ export type Review = {
   responseMs: number;
 };
 
-export type PhraseStatus = "captured" | "carded" | "spoken";
-
 export type PhraseInboxItem = {
   id: string;
   textEs: string;
@@ -31,12 +61,20 @@ export type PhraseInboxItem = {
   status: PhraseStatus;
   createdAt: string;
   lastUsedAt?: string;
+  meaningOrPromptPl?: string;
+  topicId: string;
+  clarified: boolean;
+  promotedCardId?: string;
+  timesSpoken: number;
+  nextReuseAt?: string;
+  activationStage: ActivationStage;
 };
 
 export type SpeakingSelfScores = {
-  stumbles: number;
+  hesitation: number;
   connectors: number;
-  clarity: number;
+  repair: number;
+  sentenceLength: number;
   confidence: number;
 };
 
@@ -44,10 +82,12 @@ export type SpeakingSession = {
   id: string;
   date: string;
   promptId: string;
+  missionId?: string;
   mode: StudyMode;
   durationMin: number;
   audioRef?: string;
   selfScores: SpeakingSelfScores;
+  usedPhraseRefs: string[];
 };
 
 export type DailyLog = {
@@ -61,6 +101,24 @@ export type DailyLog = {
   mode: StudyMode;
   completed: boolean;
   sessionTemplate: SessionTemplate;
+  activatedCount: number;
+  reusedCount: number;
+  missionCompleted: boolean;
+};
+
+export type DailyPlanRecord = {
+  date: string;
+  mode: StudyMode;
+  template: SessionTemplate;
+  completedStepIds: string[];
+};
+
+export type TutorCorrection = {
+  id: string;
+  text: string;
+  pin: TutorCorrectionPin;
+  promotedToCard: boolean;
+  usedInMission: boolean;
 };
 
 export type TutorNote = {
@@ -70,6 +128,7 @@ export type TutorNote = {
   mistakes: string[];
   correctedForms: string[];
   promotedToCards: string[];
+  corrections: TutorCorrection[];
 };
 
 export type AppSettings = {
@@ -79,11 +138,55 @@ export type AppSettings = {
   locale: string;
 };
 
-export type DailyPlanRecord = {
+export type LearnerProfile = {
+  levelBand: LevelBand;
+  priorityContexts: string[];
+  mainBarrier: MainBarrier;
+  weeklyIntensity: WeeklyIntensity;
+  tutorFrequency: TutorFrequency;
+  preferredLessonMode: StudyMode;
+};
+
+export type StudyMaterial = {
+  id: string;
+  topicId: string;
+  title: string;
+  kind: "dialog" | "text" | "audio";
+  durationMin: number;
+  level: string;
+  summary: string;
+  purpose: string;
+  keyChunks: string[];
+  phrases: string[];
+  noticingChecklist: string[];
+  captureSuggestions: string[];
+  handoffMissionType: MissionType;
+};
+
+export type SpeakingMission = {
+  id: string;
   date: string;
-  mode: StudyMode;
-  template: SessionTemplate;
-  completedStepIds: string[];
+  type: MissionType;
+  topicId: string;
+  prompt: string;
+  requiredPhraseRefs: string[];
+  durationMin: number;
+  status: MissionStatus;
+  completedAt?: string;
+  support: string[];
+  completionCriteria: string[];
+};
+
+export type WeeklyFocus = {
+  id: string;
+  weekOf: string;
+  goal: string;
+  context: string;
+  levelBand: LevelBand;
+  targetChunks: string[];
+  inputIds: string[];
+  missionIds: string[];
+  status: WeeklyFocusStatus;
 };
 
 export type AppState = {
@@ -95,6 +198,9 @@ export type AppState = {
   dailyLogs: DailyLog[];
   dailyPlans: DailyPlanRecord[];
   tutorNotes: TutorNote[];
+  weeklyFocuses: WeeklyFocus[];
+  speakingMissions: SpeakingMission[];
+  learnerProfile: LearnerProfile;
   settings: AppSettings;
 };
 
@@ -106,27 +212,42 @@ export type TodayPlanStep = {
   route: string;
 };
 
+export type UseTodayItem = {
+  id: string;
+  refId: string;
+  text: string;
+  source: UseTodaySource;
+  activationStage: ActivationStage;
+  topicId: string;
+  reason: string;
+  dueNow: boolean;
+};
+
 export type TodayPlanView = {
   date: string;
   mode: StudyMode;
   template: SessionTemplate;
+  communicativeGoal: string;
+  weeklyFocus: WeeklyFocus;
+  mission: SpeakingMission;
   steps: Array<TodayPlanStep & { completed: boolean }>;
   completedCount: number;
+  targetChunks: string[];
+  useTodayQueue: UseTodayItem[];
+  tutorCarryover: TutorCorrection[];
 };
 
-export type StudyMaterial = {
-  id: string;
-  title: string;
-  kind: "dialog" | "text" | "audio";
-  durationMin: number;
-  level: string;
-  summary: string;
-  phrases: string[];
-};
+export type WeeklyRecommendation = "reduce_new_cards" | "repeat_focus" | "move_to_next_focus";
 
-export type SpeakPrompt = {
-  id: string;
-  topic: string;
-  prompt: string;
-  support: string[];
+export type DashboardSummary = {
+  todayLog: DailyLog;
+  dueCards: Card[];
+  backlogBlocked: boolean;
+  recycleCandidates: PhraseInboxItem[];
+  useTodayQueue: UseTodayItem[];
+  weeklyRecommendation: WeeklyRecommendation;
+  activatedThisWeek: number;
+  reusedThisWeek: number;
+  tutorConversionsThisWeek: number;
+  averageMissionMinutes: number;
 };

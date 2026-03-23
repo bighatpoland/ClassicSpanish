@@ -5,11 +5,13 @@ import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Panel, PrimaryButton, SectionTitle } from "@/components/ui";
 import { useAppStore } from "@/hooks/use-app-store";
-import { capturePhrase, getRecycleCandidates, markPhraseSpoken, promotePhraseToCard } from "@/lib/app-state";
+import { capturePhrase, clarifyPhrase, getCurrentWeeklyFocus, getRecycleCandidates, markPhraseSpoken, promotePhraseToCard } from "@/lib/app-state";
 
 export default function InboxPage() {
   const { hydrated, state, updateState } = useAppStore();
   const [draft, setDraft] = useState("");
+  const [draftMeaning, setDraftMeaning] = useState("");
+  const [editing, setEditing] = useState<Record<string, string>>({});
 
   if (!hydrated || !state) {
     return (
@@ -20,18 +22,21 @@ export default function InboxPage() {
   }
 
   const recycleCandidates = getRecycleCandidates(state);
+  const currentFocus = getCurrentWeeklyFocus(state);
 
   return (
     <AppShell activeRoute="/inbox" title="Inbox">
-      <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
         <div className="space-y-4">
           <Panel className="space-y-4">
-            <SectionTitle subtitle="Notice -> Capture powinno trwac kilka sekund." title="Quick Capture" />
-            <textarea className="min-h-32 w-full rounded border border-applus-border px-3 py-3 text-base" onChange={(event) => setDraft(event.target.value)} placeholder="Np. Hoy quiero hablar un poco mas despacio." value={draft} />
+            <SectionTitle subtitle="Capture is useful only if the phrase is clarified and connected to current speaking work." title="Quick Capture" />
+            <textarea className="applus-textarea min-h-32" onChange={(event) => setDraft(event.target.value)} placeholder="Np. Hoy quiero explicarlo mejor." value={draft} />
+            <input className="applus-field" onChange={(event) => setDraftMeaning(event.target.value)} placeholder="Prompt / meaning po polsku" value={draftMeaning} />
             <PrimaryButton
               onClick={() => {
-                updateState((current) => capturePhrase(current, draft, "inbox"));
+                updateState((current) => capturePhrase(current, draft, "inbox", { meaningOrPromptPl: draftMeaning, topicId: currentFocus.id }));
                 setDraft("");
+                setDraftMeaning("");
               }}
             >
               Add phrase
@@ -39,14 +44,16 @@ export default function InboxPage() {
           </Panel>
 
           <Panel className="space-y-4">
-            <SectionTitle subtitle="Frazy do uzycia glosowo w ciagu 48h." title="Recycle Task" />
+            <SectionTitle subtitle="These phrases should reappear quickly until they are reused in context." title="Reuse Pressure" />
             {recycleCandidates.length === 0 ? (
               <p className="text-sm text-slate-600">Brak pilnych fraz.</p>
             ) : (
               recycleCandidates.map((item) => (
-                <div className="rounded border border-applus-border bg-applus-muted p-4" key={item.id}>
+                <div className="applus-soft-panel p-4" key={item.id}>
                   <p className="font-medium">{item.textEs}</p>
-                  <p className="text-sm text-slate-600">{item.status}</p>
+                  <p className="text-sm text-slate-600">
+                    {item.activationStage.replaceAll("_", " ")} • {item.topicId}
+                  </p>
                 </div>
               ))
             )}
@@ -54,27 +61,44 @@ export default function InboxPage() {
         </div>
 
         <Panel className="space-y-4">
-          <SectionTitle subtitle="Pipeline: captured -> carded -> spoken." title="Phrase Inbox" />
-          {state.phraseInbox.map((item) => (
-            <div className="rounded border border-applus-border bg-white p-4" key={item.id}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">{item.textEs}</p>
-                  <p className="text-sm text-slate-600">
-                    {item.source} • {item.status}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button className="rounded border border-applus-border px-3 py-2 text-sm hover:bg-applus-muted" onClick={() => updateState((current) => promotePhraseToCard(current, item.id))} type="button">
-                    To SRS
-                  </button>
-                  <button className="rounded border border-applus-border px-3 py-2 text-sm hover:bg-applus-muted" onClick={() => updateState((current) => markPhraseSpoken(current, item.id))} type="button">
-                    Mark spoken
-                  </button>
+          <SectionTitle subtitle="Formal activation pipeline: captured -> clarified -> carded -> primed -> used today -> reused -> stable." title="Phrase Inbox" />
+          <div className="applus-grid-table">
+            {state.phraseInbox.map((item) => (
+              <div className="applus-grid-row" key={item.id}>
+                <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_auto]">
+                  <div>
+                    <p className="font-medium">{item.textEs}</p>
+                    <p className="text-sm text-slate-600">
+                      {item.source} • {item.topicId} • {item.activationStage.replaceAll("_", " ")}
+                    </p>
+                  </div>
+                  <div>
+                    <input
+                      className="applus-field"
+                      onChange={(event) => setEditing((current) => ({ ...current, [item.id]: event.target.value }))}
+                      placeholder="Prompt / meaning po polsku"
+                      value={editing[item.id] ?? item.meaningOrPromptPl ?? ""}
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 xl:justify-end">
+                    <button
+                      className="border border-applus-border bg-white px-3 py-2 text-sm hover:bg-applus-muted"
+                      onClick={() => updateState((current) => clarifyPhrase(current, item.id, editing[item.id] ?? item.meaningOrPromptPl ?? "", item.topicId))}
+                      type="button"
+                    >
+                      Clarify
+                    </button>
+                    <button className="border border-applus-border bg-white px-3 py-2 text-sm hover:bg-applus-muted" onClick={() => updateState((current) => promotePhraseToCard(current, item.id))} type="button">
+                      To SRS
+                    </button>
+                    <button className="border border-applus-border bg-white px-3 py-2 text-sm hover:bg-applus-muted" onClick={() => updateState((current) => markPhraseSpoken(current, item.id))} type="button">
+                      Used in speech
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </Panel>
       </div>
     </AppShell>

@@ -7,6 +7,8 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       topic?: string;
       mode?: "quiet" | "voice";
+      missionType?: "retell" | "opinion" | "story" | "simulation" | "lesson-prep" | "reuse-challenge";
+      targetChunks?: string[];
       recentPhrases?: string[];
     };
     const result = await generateSpeakingPrompt(body);
