@@ -11,14 +11,14 @@ type AppShellProps = {
 };
 
 const navigationItems = [
-  { href: "/today", label: "Today", menuLabel: "Item Text" },
-  { href: "/study/srs", label: "SRS", menuLabel: "Item Text" },
-  { href: "/study/input", label: "Input", menuLabel: "Item Text" },
-  { href: "/study/speak", label: "Speak", menuLabel: "Item Text" },
-  { href: "/inbox", label: "Inbox", menuLabel: "Item Text" },
-  { href: "/tutor", label: "Tutor", menuLabel: "Item Text" },
-  { href: "/progress", label: "Progress", menuLabel: "Item Text" },
-  { href: "/settings", label: "Settings", menuLabel: "Item Text" }
+  { href: "/today", label: "Today", menuLabel: "Today" },
+  { href: "/study/srs", label: "SRS", menuLabel: "SRS" },
+  { href: "/study/input", label: "Input", menuLabel: "Input" },
+  { href: "/study/speak", label: "Speak", menuLabel: "Speak" },
+  { href: "/inbox", label: "Inbox", menuLabel: "Inbox" },
+  { href: "/tutor", label: "Tutor", menuLabel: "Tutor" },
+  { href: "/progress", label: "Progress", menuLabel: "Progress" },
+  { href: "/settings", label: "Settings", menuLabel: "Settings" }
 ];
 
 const functionsByRoute: Record<string, string[]> = {
